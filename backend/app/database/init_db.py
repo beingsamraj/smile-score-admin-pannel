@@ -1,8 +1,11 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from app.database.session import Base, engine, SessionLocal
 from app.models.admin_user import AdminUser
 from app.models.system_models import (
+    Factory,
     Department,
+    HRAccount,
     Designation,
     Employee,
     FaceTemplate,
@@ -22,6 +25,20 @@ def init_db() -> None:
 
     db: Session = SessionLocal()
     try:
+        # Check and migrate columns on SQLite if missing
+        try:
+            cols = [row[1] for row in db.execute(text("PRAGMA table_info(employees)")).fetchall()]
+            if "factory_id" not in cols:
+                db.execute(text("ALTER TABLE employees ADD COLUMN factory_id VARCHAR(36) REFERENCES factories(id)"))
+                db.commit()
+                logger.info("Migrated employees table: added factory_id column.")
+            if "department_id" not in cols:
+                db.execute(text("ALTER TABLE employees ADD COLUMN department_id VARCHAR(36) REFERENCES departments(id)"))
+                db.commit()
+                logger.info("Migrated employees table: added department_id column.")
+        except Exception as mig_err:
+            logger.warning(f"Column migration check note: {mig_err}")
+
         # Check if an admin user already exists
         existing_admin = db.query(AdminUser).first()
         if not existing_admin:
