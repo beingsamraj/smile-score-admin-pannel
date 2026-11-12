@@ -7,7 +7,16 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.logging import logger
 from app.database.init_db import init_db
-from app.routers import auth, employees, recognition, dashboard, reports
+from app.routers import (
+    auth,
+    factories,
+    departments,
+    hr,
+    employees,
+    recognition,
+    dashboard,
+    reports,
+)
 
 
 @asynccontextmanager
@@ -78,6 +87,9 @@ def health_check():
 
 # Include API v1 Routers
 app.include_router(auth.router, prefix=settings.API_V1_STR)
+app.include_router(factories.router, prefix=settings.API_V1_STR)
+app.include_router(departments.router, prefix=settings.API_V1_STR)
+app.include_router(hr.router, prefix=settings.API_V1_STR)
 app.include_router(employees.router, prefix=settings.API_V1_STR)
 app.include_router(recognition.router, prefix=settings.API_V1_STR)
 app.include_router(dashboard.router, prefix=settings.API_V1_STR)

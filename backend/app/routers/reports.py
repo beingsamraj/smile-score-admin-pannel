@@ -10,8 +10,8 @@ router = APIRouter(prefix="/reports", tags=["Reports & Exports"])
 
 @router.get("/export")
 def export_reports(
-    report_type: str = Query("smile_scores", regex="^(smile_scores|attendance|audit_logs)$"),
-    export_format: str = Query("excel", regex="^(excel|pdf|csv)$"),
+    report_type: str = Query("smile_scores", pattern="^(smile_scores|attendance|audit_logs)$"),
+    export_format: str = Query("excel", pattern="^(excel|pdf|csv)$"),
     current_admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):

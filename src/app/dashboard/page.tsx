@@ -6,14 +6,14 @@ import { useAuth } from "@/context/AuthContext";
 import { Employee, RecognitionLog } from "@/types/api";
 import { api } from "@/lib/api";
 import { FaceEnrollmentModal } from "@/components/FaceEnrollmentModal";
+import { AdminSidebar } from "@/components/AdminSidebar";
+import Link from "next/link";
 import {
   Users,
   UserPlus,
-  Smile,
   LogOut,
   Camera,
   Search,
-  Shield,
   Activity,
   UserCheck,
   UserX,
@@ -21,6 +21,10 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
+  Building2,
+  Network,
+  UserCog,
+  ArrowRight,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -151,55 +155,85 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#142D52] flex flex-col">
-      {/* Top Navigation Bar */}
-      <header className="border-b border-[#E2E8F0] bg-white sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#142D52] rounded-xl flex items-center justify-center text-white shadow-xs">
-            <Smile className="w-6 h-6" />
-          </div>
+    <div className="min-h-screen bg-white text-[#142D52] flex flex-col lg:flex-row">
+      <AdminSidebar backendStatus={backendStatus} />
+
+      <div className="flex-1 flex flex-col overflow-x-hidden">
+        {/* Top Header */}
+        <header className="border-b border-[#E2E8F0] bg-white sticky top-0 z-30 px-6 py-4 flex items-center justify-between shadow-xs">
           <div>
-            <span className="font-bold text-base tracking-tight leading-none block text-[#142D52]">
-              Smile Score Admin
-            </span>
-            <span className="text-xs text-[#64748B] mt-0.5 block">
-              Biometrics & Workforce Analytics
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Backend Connection Indicator */}
-          <div className="hidden sm:flex items-center gap-2 text-xs bg-[#EAF0F8] px-3 py-1.5 rounded-full border border-[#D2E1F1]">
-            <Server
-              className={`w-3.5 h-3.5 ${
-                backendStatus === "online" ? "text-emerald-600" : "text-amber-600"
-              }`}
-            />
-            <span className="font-medium text-[#142D52]">
-              FastAPI: {backendStatus === "online" ? "Online" : "Pending / Offline"}
-            </span>
+            <h1 className="text-base font-bold text-[#142D52] tracking-tight">Workforce & Smile Score Operations</h1>
+            <p className="text-xs text-[#64748B]">Overview of employee enrollment, recognition scans, and organization mapping</p>
           </div>
 
-          {/* User Badge */}
-          <div className="flex items-center gap-2 text-xs text-[#142D52] bg-white border border-[#E2E8F0] px-3 py-1.5 rounded-full">
-            <Shield className="w-3.5 h-3.5 text-[#142D52]" />
-            <span className="font-semibold">{user.name}</span>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 text-xs bg-[#EAF0F8] px-3 py-1.5 rounded-full border border-[#D2E1F1]">
+              <Server
+                className={`w-3.5 h-3.5 ${
+                  backendStatus === "online" ? "text-emerald-600" : "text-amber-600"
+                }`}
+              />
+              <span className="font-medium text-[#142D52]">
+                FastAPI: {backendStatus === "online" ? "Online" : "Checking..."}
+              </span>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="p-2 text-[#64748B] hover:text-[#142D52] hover:bg-[#EAF0F8] rounded-lg transition"
+              title="Log Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
+        </header>
 
-          {/* Logout */}
-          <button
-            onClick={handleLogout}
-            className="p-2 text-[#64748B] hover:text-[#142D52] hover:bg-[#EAF0F8] rounded-lg transition cursor-pointer"
-            title="Log Out"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      </header>
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6">
+          {/* Quick Nav Cards for Core Modules */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link
+              href="/factories"
+              className="p-4 rounded-2xl border border-[#E2E8F0] bg-white hover:border-[#142D52] hover:shadow-md transition group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-9 h-9 rounded-xl bg-[#EAF0F8] border border-[#D2E1F1] flex items-center justify-center text-[#142D52]">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#94A3B8] group-hover:text-[#142D52] group-hover:translate-x-0.5 transition" />
+              </div>
+              <div className="font-bold text-sm text-[#142D52]">Factory Management</div>
+              <p className="text-xs text-[#64748B] mt-0.5">Primary multi-plant configuration, codes, and facilities</p>
+            </Link>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6">
+            <Link
+              href="/departments"
+              className="p-4 rounded-2xl border border-[#E2E8F0] bg-white hover:border-[#142D52] hover:shadow-md transition group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-9 h-9 rounded-xl bg-[#EAF0F8] border border-[#D2E1F1] flex items-center justify-center text-[#142D52]">
+                  <Network className="w-5 h-5" />
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#94A3B8] group-hover:text-[#142D52] group-hover:translate-x-0.5 transition" />
+              </div>
+              <div className="font-bold text-sm text-[#142D52]">Department Management</div>
+              <p className="text-xs text-[#64748B] mt-0.5">Factory-scoped departments and operational divisions</p>
+            </Link>
+
+            <Link
+              href="/hr"
+              className="p-4 rounded-2xl border border-[#E2E8F0] bg-white hover:border-[#142D52] hover:shadow-md transition group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-9 h-9 rounded-xl bg-[#EAF0F8] border border-[#D2E1F1] flex items-center justify-center text-[#142D52]">
+                  <UserCog className="w-5 h-5" />
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#94A3B8] group-hover:text-[#142D52] group-hover:translate-x-0.5 transition" />
+              </div>
+              <div className="font-bold text-sm text-[#142D52]">HR Management</div>
+              <p className="text-xs text-[#64748B] mt-0.5">Plant-level HR accounts, role privileges, and credentials</p>
+            </Link>
+          </div>
         {/* Action Alerts */}
         {actionMessage && (
           <div
@@ -530,6 +564,7 @@ export default function DashboardPage() {
           onCancel={() => setEnrollingEmployee(null)}
         />
       )}
+      </div>
     </div>
   );
 }

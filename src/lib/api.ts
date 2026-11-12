@@ -6,6 +6,17 @@ import {
   EmployeeUpdateInput,
   FaceEnrollmentResponse,
   RecognitionLog,
+  Factory,
+  FactoryCreateInput,
+  FactoryUpdateInput,
+  Department,
+  DepartmentCreateInput,
+  DepartmentUpdateInput,
+  HRAccount,
+  HRCreateInput,
+  HRUpdateInput,
+  HRResetPasswordInput,
+  ApiResponseSuccess,
 } from "@/types/api";
 
 const API_BASE_URL =
@@ -71,13 +82,11 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const api = {
   // Auth
   login: async (identifier: string, password: string): Promise<AuthResponse> => {
-    // Standard OAuth2 / JSON login endpoint
     const response = await request<Record<string, unknown>>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ username: identifier, password }),
     });
 
-    // Normalize response from either format: { access_token, user } or { status, user: { token, ... } }
     if (response.access_token) {
       return response as unknown as AuthResponse;
     }
@@ -104,7 +113,162 @@ export const api = {
     return request<AdminUser>("/auth/me");
   },
 
-  // Employees
+  // -------------------------------------------------------------
+  // Factory Management APIs
+  // -------------------------------------------------------------
+  getFactories: async (search?: string, status?: "all" | "active" | "inactive"): Promise<Factory[]> => {
+    const params = new URLSearchParams();
+    if (search) params.append("search", search);
+    if (status && status !== "all") params.append("status", status);
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    return request<Factory[]>(`/factories${qs}`);
+  },
+
+  getFactoryById: async (id: string): Promise<Factory> => {
+    return request<Factory>(`/factories/${id}`);
+  },
+
+  createFactory: async (data: FactoryCreateInput): Promise<Factory> => {
+    return request<Factory>("/factories", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateFactory: async (id: string, data: FactoryUpdateInput): Promise<Factory> => {
+    return request<Factory>(`/factories/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  toggleFactoryStatus: async (id: string, isActive: boolean): Promise<Factory> => {
+    return request<Factory>(`/factories/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_active: isActive }),
+    });
+  },
+
+  deleteFactory: async (id: string): Promise<ApiResponseSuccess> => {
+    return request<ApiResponseSuccess>(`/factories/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  getFactoryDepartments: async (id: string): Promise<Department[]> => {
+    return request<Department[]>(`/factories/${id}/departments`);
+  },
+
+  getFactoryHRAccounts: async (id: string): Promise<HRAccount[]> => {
+    return request<HRAccount[]>(`/factories/${id}/hr`);
+  },
+
+  // -------------------------------------------------------------
+  // Department Management APIs
+  // -------------------------------------------------------------
+  getDepartments: async (
+    factoryId?: string,
+    status?: "all" | "active" | "inactive",
+    search?: string
+  ): Promise<Department[]> => {
+    const params = new URLSearchParams();
+    if (factoryId) params.append("factory_id", factoryId);
+    if (status && status !== "all") params.append("status", status);
+    if (search) params.append("search", search);
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    return request<Department[]>(`/departments${qs}`);
+  },
+
+  getDepartmentById: async (id: string): Promise<Department> => {
+    return request<Department>(`/departments/${id}`);
+  },
+
+  createDepartment: async (data: DepartmentCreateInput): Promise<Department> => {
+    return request<Department>("/departments", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateDepartment: async (id: string, data: DepartmentUpdateInput): Promise<Department> => {
+    return request<Department>(`/departments/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  toggleDepartmentStatus: async (id: string, isActive: boolean): Promise<Department> => {
+    return request<Department>(`/departments/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_active: isActive }),
+    });
+  },
+
+  deleteDepartment: async (id: string): Promise<ApiResponseSuccess> => {
+    return request<ApiResponseSuccess>(`/departments/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // -------------------------------------------------------------
+  // HR Management APIs
+  // -------------------------------------------------------------
+  getHRAccounts: async (
+    factoryId?: string,
+    departmentId?: string,
+    status?: "all" | "active" | "inactive",
+    search?: string
+  ): Promise<HRAccount[]> => {
+    const params = new URLSearchParams();
+    if (factoryId) params.append("factory_id", factoryId);
+    if (departmentId) params.append("department_id", departmentId);
+    if (status && status !== "all") params.append("status", status);
+    if (search) params.append("search", search);
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    return request<HRAccount[]>(`/hr${qs}`);
+  },
+
+  getHRById: async (id: string): Promise<HRAccount> => {
+    return request<HRAccount>(`/hr/${id}`);
+  },
+
+  createHR: async (data: HRCreateInput): Promise<HRAccount> => {
+    return request<HRAccount>("/hr", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateHR: async (id: string, data: HRUpdateInput): Promise<HRAccount> => {
+    return request<HRAccount>(`/hr/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  toggleHRStatus: async (id: string, isActive: boolean): Promise<HRAccount> => {
+    return request<HRAccount>(`/hr/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_active: isActive }),
+    });
+  },
+
+  resetHRPassword: async (id: string, data: HRResetPasswordInput): Promise<ApiResponseSuccess> => {
+    return request<ApiResponseSuccess>(`/hr/${id}/reset-password`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteHR: async (id: string): Promise<ApiResponseSuccess> => {
+    return request<ApiResponseSuccess>(`/hr/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // -------------------------------------------------------------
+  // Employees & Face Enrollment
+  // -------------------------------------------------------------
   getEmployees: async (search?: string): Promise<Employee[]> => {
     const query = search ? `?search=${encodeURIComponent(search)}` : "";
     return request<Employee[]>(`/employees${query}`);
@@ -135,7 +299,6 @@ export const api = {
     });
   },
 
-  // Face Enrollment
   enrollFaceSamples: async (
     employeeId: string,
     sampleBlobs: Blob[]
@@ -179,7 +342,6 @@ export const api = {
     });
   },
 
-  // Recognition Logs
   getRecognitionLogs: async (limit = 50): Promise<RecognitionLog[]> => {
     return request<RecognitionLog[]>(`/recognition/logs?limit=${limit}`);
   },
