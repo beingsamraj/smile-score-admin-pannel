@@ -1,47 +1,3 @@
-export interface Employee {
-  id: string;
-  employee_id: string;
-  full_name: string;
-  department: string;
-  designation: string;
-  is_active: boolean;
-  is_enrolled: boolean;
-  enrolled_at?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface EmployeeCreateInput {
-  employee_id: string;
-  full_name: string;
-  department: string;
-  designation: string;
-}
-
-export interface EmployeeUpdateInput {
-  full_name?: string;
-  department?: string;
-  designation?: string;
-  is_active?: boolean;
-}
-
-export interface FaceEnrollmentResponse {
-  success: boolean;
-  message: string;
-  samples_processed: number;
-  enrolled_at: string;
-}
-
-export interface RecognitionLog {
-  id: string;
-  employee_id: string;
-  employee_name: string;
-  smile_score: number;
-  confidence: number;
-  timestamp: string;
-  status: "verified" | "flagged" | "rejected";
-}
-
 export interface AdminUser {
   id: string;
   email: string;
@@ -180,6 +136,133 @@ export interface HRUpdateInput {
 
 export interface HRResetPasswordInput {
   new_password: string;
+}
+
+// -------------------------------------------------------------
+// Employee Management Types (Numeric String ID up to 16 digits)
+// -------------------------------------------------------------
+export interface Employee {
+  id: string;
+  employee_id: string; // up to 16 digits string preserving leading zeros
+  full_name: string;
+  factory_id?: string | null;
+  factory_name?: string | null;
+  factory_code?: string | null;
+  department_id?: string | null;
+  department_name?: string | null;
+  department?: string | null;
+  designation?: string | null;
+  department_code?: string | null;
+  assigned_hr_id?: string | null;
+  assigned_hr_name?: string | null;
+  assigned_hr_username?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  face_id?: string | null;
+  fingerprint_id?: string | null;
+  has_face_enrolled: boolean;
+  has_fingerprint_enrolled: boolean;
+  is_active: boolean;
+  is_enrolled: boolean;
+  enrolled_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmployeeCreateInput {
+  employee_id: string;
+  full_name: string;
+  factory_id?: string;
+  department_id?: string;
+  assigned_hr_id?: string;
+  department?: string;
+  designation?: string;
+  phone?: string;
+  email?: string;
+  face_id?: string;
+  fingerprint_id?: string;
+  is_active?: boolean;
+}
+
+export interface EmployeeUpdateInput {
+  full_name?: string;
+  factory_id?: string;
+  department_id?: string;
+  assigned_hr_id?: string;
+  department?: string;
+  designation?: string;
+  phone?: string;
+  email?: string;
+  face_id?: string;
+  fingerprint_id?: string;
+  is_active?: boolean;
+}
+
+export interface DepartmentTransferInput {
+  target_department_id: string;
+  new_assigned_hr_id: string;
+  reason?: string;
+}
+
+export interface FactoryTransferInput {
+  target_factory_id: string;
+  target_department_id: string;
+  new_assigned_hr_id: string;
+  reason?: string;
+}
+
+export interface TransferHistory {
+  id: string;
+  employee_id: string;
+  transfer_type: "department" | "factory";
+  previous_factory_id?: string | null;
+  previous_factory_name?: string | null;
+  previous_department_id?: string | null;
+  previous_department_name?: string | null;
+  previous_hr_id?: string | null;
+  previous_hr_name?: string | null;
+  new_factory_id: string;
+  new_factory_name?: string | null;
+  new_department_id: string;
+  new_department_name?: string | null;
+  new_hr_id: string;
+  new_hr_name?: string | null;
+  transferred_by_admin_id?: string | null;
+  transfer_date: string;
+  reason?: string | null;
+}
+
+export interface EmployeeSummary {
+  total_employees: number;
+  active_employees: number;
+  inactive_employees: number;
+  total_factories: number;
+  total_departments: number;
+}
+
+export interface EmployeePaginated {
+  items: Employee[];
+  total: number;
+  page: number;
+  size: number;
+  total_pages: number;
+}
+
+export interface FaceEnrollmentResponse {
+  success: boolean;
+  message: string;
+  samples_processed: number;
+  enrolled_at: string;
+}
+
+export interface RecognitionLog {
+  id: string;
+  employee_id: string;
+  employee_name: string;
+  smile_score: number;
+  confidence: number;
+  timestamp: string;
+  status: "verified" | "flagged" | "rejected";
 }
 
 export interface ApiResponseSuccess {

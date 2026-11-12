@@ -42,6 +42,7 @@ class Factory(Base):
     # Relationships
     departments = relationship("Department", back_populates="factory", cascade="all, delete-orphan")
     hr_accounts = relationship("HRAccount", back_populates="factory", cascade="all, delete-orphan")
+    employees = relationship("Employee", back_populates="factory")
 
     def __repr__(self):
         return f"<Factory(id={self.id}, code={self.factory_code}, name={self.name})>"
@@ -71,6 +72,7 @@ class Department(Base):
     factory = relationship("Factory", back_populates="departments")
     hr_accounts = relationship("HRAccount", back_populates="department", cascade="all, delete-orphan")
     designations = relationship("Designation", back_populates="department")
+    employees = relationship("Employee", back_populates="department_rel")
 
     def __repr__(self):
         return f"<Department(id={self.id}, code={self.department_code}, factory_id={self.factory_id})>"
@@ -100,6 +102,7 @@ class HRAccount(Base):
     # Relationships
     factory = relationship("Factory", back_populates="hr_accounts")
     department = relationship("Department", back_populates="hr_accounts")
+    employees = relationship("Employee", back_populates="assigned_hr")
 
     def __repr__(self):
         return f"<HRAccount(id={self.id}, username={self.username}, factory_id={self.factory_id})>"
@@ -117,21 +120,85 @@ class Designation(Base):
 
 
 class Employee(Base):
-    """Employee record for face/fingerprint enrollment and smile recognition."""
+    """
+    Employee record: Belongs to Factory, Department, and is assigned to an HR account.
+    """
     __tablename__ = "employees"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
-    employee_id = Column(String(64), unique=True, nullable=False, index=True)
+    employee_id = Column(String(16), unique=True, nullable=False, index=True)  # Up to 16 numeric digits preserved as string
     full_name = Column(String(128), nullable=False, index=True)
-    department = Column(String(128), nullable=False)
-    designation = Column(String(128), nullable=False)
-    factory_id = Column(String(36), ForeignKey("factories.id"), nullable=True)
-    department_id = Column(String(36), ForeignKey("departments.id"), nullable=True)
-    is_active = Column(Boolean, default=True, nullable=False)
+    factory_id = Column(String(36), ForeignKey("factories.id", ondelete="RESTRICT"), nullable=True, index=True)
+    department_id = Column(String(36), ForeignKey("departments.id", ondelete="RESTRICT"), nullable=True, index=True)
+    assigned_hr_id = Column(String(36), ForeignKey("hr_accounts.id", ondelete="RESTRICT"), nullable=True, index=True)
+
+    # Compatibility string fields
+    department = Column(String(128), nullable=True)
+    designation = Column(String(128), nullable=True)
+
+    # Biometrics references (optional)
+    face_id = Column(String(64), nullable=True)
+    fingerprint_id = Column(String(64), nullable=True)
     is_enrolled = Column(Boolean, default=False, nullable=False)
     enrolled_at = Column(DateTime, nullable=True)
+
+    # Contact Info
+    phone = Column(String(32), nullable=True)
+    email = Column(String(128), nullable=True)
+
+    # Status & Soft Deletion
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_deleted = Column(Boolean, default=False, nullable=False, index=True)
+    deleted_at = Column(DateTime, nullable=True)
+
     created_at = Column(DateTime, default=get_utc_now, nullable=False)
     updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now, nullable=False)
+
+    # Relationships
+    factory = relationship("Factory", back_populates="employees")
+    department_rel = relationship("Department", back_populates="employees")
+    assigned_hr = relationship("HRAccount", back_populates="employees")
+    transfer_history = relationship("EmployeeTransferHistory", back_populates="employee", cascade="all, delete-orphan", order_by="desc(EmployeeTransferHistory.transfer_date)")
+
+    def __repr__(self):
+        return f"<Employee(id={self.id}, employee_id={self.employee_id}, name={self.full_name})>"
+
+
+class EmployeeTransferHistory(Base):
+    """
+    Preserves audit history for Employee Department and Factory transfers.
+    """
+    __tablename__ = "employee_transfer_history"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    employee_id = Column(String(36), ForeignKey("employees.id", ondelete="CASCADE"), nullable=False, index=True)
+    transfer_type = Column(String(32), nullable=False)  # "department" or "factory"
+
+    # Previous assignments
+    previous_factory_id = Column(String(36), nullable=True)
+    previous_factory_name = Column(String(128), nullable=True)
+    previous_department_id = Column(String(36), nullable=True)
+    previous_department_name = Column(String(128), nullable=True)
+    previous_hr_id = Column(String(36), nullable=True)
+    previous_hr_name = Column(String(128), nullable=True)
+
+    # New assignments
+    new_factory_id = Column(String(36), nullable=False)
+    new_factory_name = Column(String(128), nullable=True)
+    new_department_id = Column(String(36), nullable=False)
+    new_department_name = Column(String(128), nullable=True)
+    new_hr_id = Column(String(36), nullable=False)
+    new_hr_name = Column(String(128), nullable=True)
+
+    transferred_by_admin_id = Column(String(36), nullable=True)
+    transfer_date = Column(DateTime, default=get_utc_now, nullable=False, index=True)
+    reason = Column(Text, nullable=True)
+
+    # Relationship
+    employee = relationship("Employee", back_populates="transfer_history")
+
+    def __repr__(self):
+        return f"<EmployeeTransferHistory(id={self.id}, type={self.transfer_type}, emp_id={self.employee_id})>"
 
 
 class FaceTemplate(Base):

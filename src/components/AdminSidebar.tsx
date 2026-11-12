@@ -9,6 +9,7 @@ import {
   Building2,
   Network,
   UserCog,
+  Users,
   LogOut,
   Shield,
   Server,
@@ -53,6 +54,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ backendStatus = "onl
       name: "HR Management",
       href: "/hr",
       icon: UserCog,
+      badge: null,
+    },
+    {
+      name: "Employees",
+      href: "/employees",
+      icon: Users,
       badge: null,
     },
   ];

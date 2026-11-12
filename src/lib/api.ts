@@ -4,6 +4,11 @@ import {
   Employee,
   EmployeeCreateInput,
   EmployeeUpdateInput,
+  EmployeeSummary,
+  EmployeePaginated,
+  DepartmentTransferInput,
+  FactoryTransferInput,
+  TransferHistory,
   FaceEnrollmentResponse,
   RecognitionLog,
   Factory,
@@ -267,11 +272,32 @@ export const api = {
   },
 
   // -------------------------------------------------------------
-  // Employees & Face Enrollment
+  // Employees & Transfers Management APIs
   // -------------------------------------------------------------
-  getEmployees: async (search?: string): Promise<Employee[]> => {
-    const query = search ? `?search=${encodeURIComponent(search)}` : "";
-    return request<Employee[]>(`/employees${query}`);
+  getEmployeeSummary: async (): Promise<EmployeeSummary> => {
+    return request<EmployeeSummary>("/employees/summary");
+  },
+
+  getEmployees: async (options?: {
+    search?: string;
+    factory_id?: string;
+    department_id?: string;
+    hr_id?: string;
+    status?: "all" | "active" | "inactive";
+    page?: number;
+    size?: number;
+  }): Promise<EmployeePaginated> => {
+    const params = new URLSearchParams();
+    if (options?.search) params.append("search", options.search);
+    if (options?.factory_id) params.append("factory_id", options.factory_id);
+    if (options?.department_id) params.append("department_id", options.department_id);
+    if (options?.hr_id) params.append("hr_id", options.hr_id);
+    if (options?.status && options.status !== "all") params.append("status", options.status);
+    if (options?.page) params.append("page", options.page.toString());
+    if (options?.size) params.append("size", options.size.toString());
+
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    return request<EmployeePaginated>(`/employees${qs}`);
   },
 
   getEmployeeById: async (id: string): Promise<Employee> => {
@@ -287,7 +313,7 @@ export const api = {
 
   updateEmployee: async (id: string, data: EmployeeUpdateInput): Promise<Employee> => {
     return request<Employee>(`/employees/${id}`, {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify(data),
     });
   },
@@ -297,6 +323,30 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ is_active: isActive }),
     });
+  },
+
+  deleteEmployee: async (id: string): Promise<ApiResponseSuccess> => {
+    return request<ApiResponseSuccess>(`/employees/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  transferDepartment: async (id: string, data: DepartmentTransferInput): Promise<Employee> => {
+    return request<Employee>(`/employees/${id}/transfer/department`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  transferFactory: async (id: string, data: FactoryTransferInput): Promise<Employee> => {
+    return request<Employee>(`/employees/${id}/transfer/factory`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  getTransferHistory: async (id: string): Promise<TransferHistory[]> => {
+    return request<TransferHistory[]>(`/employees/${id}/transfer-history`);
   },
 
   enrollFaceSamples: async (

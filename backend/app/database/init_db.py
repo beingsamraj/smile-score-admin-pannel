@@ -8,6 +8,7 @@ from app.models.system_models import (
     HRAccount,
     Designation,
     Employee,
+    EmployeeTransferHistory,
     FaceTemplate,
     FingerprintRecord,
     EmotionLog,
@@ -28,14 +29,22 @@ def init_db() -> None:
         # Check and migrate columns on SQLite if missing
         try:
             cols = [row[1] for row in db.execute(text("PRAGMA table_info(employees)")).fetchall()]
-            if "factory_id" not in cols:
-                db.execute(text("ALTER TABLE employees ADD COLUMN factory_id VARCHAR(36) REFERENCES factories(id)"))
-                db.commit()
-                logger.info("Migrated employees table: added factory_id column.")
-            if "department_id" not in cols:
-                db.execute(text("ALTER TABLE employees ADD COLUMN department_id VARCHAR(36) REFERENCES departments(id)"))
-                db.commit()
-                logger.info("Migrated employees table: added department_id column.")
+            migrations = [
+                ("factory_id", "VARCHAR(36) REFERENCES factories(id)"),
+                ("department_id", "VARCHAR(36) REFERENCES departments(id)"),
+                ("assigned_hr_id", "VARCHAR(36) REFERENCES hr_accounts(id)"),
+                ("phone", "VARCHAR(32)"),
+                ("email", "VARCHAR(128)"),
+                ("face_id", "VARCHAR(64)"),
+                ("fingerprint_id", "VARCHAR(64)"),
+                ("is_deleted", "BOOLEAN DEFAULT 0"),
+                ("deleted_at", "DATETIME"),
+            ]
+            for col_name, col_type in migrations:
+                if col_name not in cols:
+                    db.execute(text(f"ALTER TABLE employees ADD COLUMN {col_name} {col_type}"))
+                    logger.info(f"Migrated employees table: added {col_name} column.")
+            db.commit()
         except Exception as mig_err:
             logger.warning(f"Column migration check note: {mig_err}")
 

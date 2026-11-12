@@ -19,6 +19,11 @@ from app.schemas.admin import (
     EmployeeUpdate,
     EmployeeStatusUpdate,
     EmployeeResponse,
+    EmployeeSummaryResponse,
+    EmployeePaginatedResponse,
+    DepartmentTransferRequest,
+    FactoryTransferRequest,
+    TransferHistoryResponse,
     RecognitionLogResponse,
     MessageResponse,
 )
@@ -44,6 +49,11 @@ __all__ = [
     "EmployeeUpdate",
     "EmployeeStatusUpdate",
     "EmployeeResponse",
+    "EmployeeSummaryResponse",
+    "EmployeePaginatedResponse",
+    "DepartmentTransferRequest",
+    "FactoryTransferRequest",
+    "TransferHistoryResponse",
     "RecognitionLogResponse",
     "MessageResponse",
 ]

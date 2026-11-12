@@ -1,6 +1,7 @@
 from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+import re
 
 
 # -------------------------------------------------------------
@@ -188,23 +189,41 @@ class HRResponse(BaseModel):
 
 
 # -------------------------------------------------------------
-# Employee & Log Schemas (Existing)
+# Employee Management Schemas (Strict 1-16 numeric digit ID validation)
 # -------------------------------------------------------------
 class EmployeeCreate(BaseModel):
-    employee_id: str
-    full_name: str
-    department: str
-    designation: str
-    factory_id: Optional[str] = None
-    department_id: Optional[str] = None
+    employee_id: str = Field(..., description="Numeric string up to 16 digits, preserves leading zeros")
+    full_name: str = Field(..., min_length=2, max_length=128)
+    factory_id: str
+    department_id: str
+    assigned_hr_id: str
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+    face_id: Optional[str] = None
+    fingerprint_id: Optional[str] = None
+    is_active: bool = True
+
+    @field_validator("employee_id")
+    def validate_employee_id(cls, v: str) -> str:
+        v_clean = v.strip()
+        if not v_clean:
+            raise ValueError("Employee ID cannot be empty.")
+        if not re.match(r"^\d+$", v_clean):
+            raise ValueError("Employee ID must contain only numeric digits (up to 16 digits).")
+        if len(v_clean) > 16:
+            raise ValueError(f"Employee ID cannot exceed 16 digits (received {len(v_clean)} digits).")
+        return v_clean
 
 
 class EmployeeUpdate(BaseModel):
-    full_name: Optional[str] = None
-    department: Optional[str] = None
-    designation: Optional[str] = None
+    full_name: Optional[str] = Field(None, min_length=2, max_length=128)
     factory_id: Optional[str] = None
     department_id: Optional[str] = None
+    assigned_hr_id: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+    face_id: Optional[str] = None
+    fingerprint_id: Optional[str] = None
     is_active: Optional[bool] = None
 
 
@@ -212,12 +231,63 @@ class EmployeeStatusUpdate(BaseModel):
     is_active: bool
 
 
+# Transfer Request Schemas
+class DepartmentTransferRequest(BaseModel):
+    target_department_id: str
+    new_assigned_hr_id: str
+    reason: Optional[str] = None
+
+
+class FactoryTransferRequest(BaseModel):
+    target_factory_id: str
+    target_department_id: str
+    new_assigned_hr_id: str
+    reason: Optional[str] = None
+
+
+class TransferHistoryResponse(BaseModel):
+    id: str
+    employee_id: str
+    transfer_type: str
+    previous_factory_id: Optional[str] = None
+    previous_factory_name: Optional[str] = None
+    previous_department_id: Optional[str] = None
+    previous_department_name: Optional[str] = None
+    previous_hr_id: Optional[str] = None
+    previous_hr_name: Optional[str] = None
+    new_factory_id: str
+    new_factory_name: Optional[str] = None
+    new_department_id: str
+    new_department_name: Optional[str] = None
+    new_hr_id: str
+    new_hr_name: Optional[str] = None
+    transferred_by_admin_id: Optional[str] = None
+    transfer_date: datetime
+    reason: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 class EmployeeResponse(BaseModel):
     id: str
     employee_id: str
     full_name: str
-    department: str
-    designation: str
+    factory_id: Optional[str] = None
+    factory_name: Optional[str] = None
+    factory_code: Optional[str] = None
+    department_id: Optional[str] = None
+    department_name: Optional[str] = None
+    department_code: Optional[str] = None
+    assigned_hr_id: Optional[str] = None
+    assigned_hr_name: Optional[str] = None
+    assigned_hr_username: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    face_id: Optional[str] = None
+    fingerprint_id: Optional[str] = None
+    has_face_enrolled: bool = False
+    has_fingerprint_enrolled: bool = False
     is_active: bool
     is_enrolled: bool
     enrolled_at: Optional[datetime] = None
@@ -226,6 +296,22 @@ class EmployeeResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class EmployeeSummaryResponse(BaseModel):
+    total_employees: int
+    active_employees: int
+    inactive_employees: int
+    total_factories: int
+    total_departments: int
+
+
+class EmployeePaginatedResponse(BaseModel):
+    items: List[EmployeeResponse]
+    total: int
+    page: int
+    size: int
+    total_pages: int
 
 
 class RecognitionLogResponse(BaseModel):

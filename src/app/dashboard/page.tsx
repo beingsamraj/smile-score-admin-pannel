@@ -64,8 +64,8 @@ export default function DashboardPage() {
   const loadEmployees = async (query?: string) => {
     setFetchingEmployees(true);
     try {
-      const data = await api.getEmployees(query);
-      setEmployees(data);
+      const res = await api.getEmployees({ search: query });
+      setEmployees(res.items);
       setBackendStatus("online");
     } catch {
       setBackendStatus("offline");
@@ -357,7 +357,9 @@ export default function DashboardPage() {
                           {emp.employee_id}
                         </td>
                         <td className="px-6 py-4 font-semibold text-[#142D52]">{emp.full_name}</td>
-                        <td className="px-6 py-4 text-[#64748B] text-xs">{emp.department}</td>
+                        <td className="px-6 py-4 text-[#64748B] text-xs">
+                          {emp.department_name || emp.department || "—"}
+                        </td>
                         <td className="px-6 py-4 text-[#64748B] text-xs">{emp.designation || "—"}</td>
                         <td className="px-6 py-4">
                           <span
