@@ -65,9 +65,17 @@ export default function DashboardPage() {
     setFetchingEmployees(true);
     try {
       const res = await api.getEmployees({ search: query });
-      setEmployees(res.items);
+      // Handle both paginated response ({ items: [...] }) and legacy direct array ([...])
+      if (res && Array.isArray((res as unknown as { items: Employee[] }).items)) {
+        setEmployees((res as unknown as { items: Employee[] }).items);
+      } else if (Array.isArray(res)) {
+        setEmployees(res);
+      } else {
+        setEmployees([]);
+      }
       setBackendStatus("online");
     } catch {
+      setEmployees([]);
       setBackendStatus("offline");
     } finally {
       setFetchingEmployees(false);
@@ -344,7 +352,7 @@ export default function DashboardPage() {
                         </div>
                       </td>
                     </tr>
-                  ) : employees.length === 0 ? (
+                  ) : !employees || employees.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-12 text-center text-[#64748B]">
                         No employee records found on backend. Click &quot;Register Employee&quot; to add one.
