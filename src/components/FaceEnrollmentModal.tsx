@@ -96,7 +96,7 @@ export const FaceEnrollmentModal: React.FC<FaceEnrollmentProps> = ({
         setTimeout(onEnrollmentComplete, 1500);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to enroll face samples";
+      const msg = err instanceof Error ? err.message : "Failed to enroll face samples on backend.";
       setErrorStatus(msg);
     } finally {
       setIsSubmitting(false);
@@ -104,16 +104,17 @@ export const FaceEnrollmentModal: React.FC<FaceEnrollmentProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl max-w-xl w-full p-6 text-slate-900 dark:text-slate-100">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#142D52]/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-xl max-w-xl w-full p-6 text-[#142D52]">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0]">
           <div>
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Camera className="w-5 h-5 text-indigo-500" />
-              Face Enrollment
+            <h2 className="text-xl font-bold text-[#142D52] flex items-center gap-2">
+              <Camera className="w-5 h-5 text-[#142D52]" />
+              Biometric Face Enrollment
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Capturing biometric samples for <span className="font-semibold">{employeeName}</span> ({employeeId})
+            <p className="text-xs text-[#64748B] mt-0.5">
+              Enrolling employee: <span className="font-semibold text-[#142D52]">{employeeName}</span> ({employeeId})
             </p>
           </div>
           <button
@@ -121,88 +122,102 @@ export const FaceEnrollmentModal: React.FC<FaceEnrollmentProps> = ({
               stopCamera();
               onCancel?.();
             }}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg font-bold"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#142D52] hover:bg-[#EAF0F8] transition"
           >
             ✕
           </button>
         </div>
 
+        {/* Camera View */}
         <div className="mt-4 space-y-4">
           {cameraError ? (
-            <div className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg flex items-center gap-3 text-red-600 dark:text-red-400 text-sm">
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700 text-sm">
               <AlertTriangle className="w-5 h-5 flex-shrink-0" />
               <span>{cameraError}</span>
             </div>
           ) : (
-            <div className="relative bg-black rounded-lg overflow-hidden aspect-video flex items-center justify-center border border-slate-700">
+            <div className="relative bg-slate-900 rounded-lg overflow-hidden aspect-video flex items-center justify-center border border-[#E2E8F0]">
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover mirror"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 border-2 border-dashed border-indigo-400/50 pointer-events-none rounded-lg m-8 flex items-center justify-center">
-                <span className="text-xs text-indigo-200/80 bg-black/40 px-2 py-1 rounded">
-                  Center face in frame
+              <div className="absolute inset-0 border-2 border-dashed border-white/60 pointer-events-none rounded-lg m-8 flex items-center justify-center">
+                <span className="text-xs text-white bg-[#142D52]/80 px-2.5 py-1 rounded-md font-medium shadow-sm">
+                  Position Face Inside Frame
                 </span>
               </div>
             </div>
           )}
 
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Captured Samples: {samples.length} / 3
+          {/* Sample Previews */}
+          <div className="flex items-center justify-between bg-[#EAF0F8] p-3 rounded-lg border border-[#D2E1F1]">
+            <span className="text-xs font-semibold text-[#142D52]">
+              Captured Samples: {samples.length} of 3
             </span>
             <div className="flex gap-2">
-              {previewUrls.map((url, i) => (
-                <img
-                  key={i}
-                  src={url}
-                  alt={`Sample ${i + 1}`}
-                  className="w-12 h-12 rounded object-cover border-2 border-indigo-500"
-                />
-              ))}
+              {[0, 1, 2].map((idx) => {
+                const url = previewUrls[idx];
+                return url ? (
+                  <img
+                    key={idx}
+                    src={url}
+                    alt={`Sample ${idx + 1}`}
+                    className="w-11 h-11 rounded-md object-cover border-2 border-[#142D52] shadow-xs"
+                  />
+                ) : (
+                  <div
+                    key={idx}
+                    className="w-11 h-11 rounded-md border-2 border-dashed border-[#CBD5E1] bg-white flex items-center justify-center text-[10px] text-[#94A3B8]"
+                  >
+                    #{idx + 1}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
+          {/* Feedback statuses */}
           {errorStatus && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 flex-shrink-0" />
               <span>{errorStatus}</span>
             </div>
           )}
 
           {enrollmentStatus && (
-            <div className="p-3 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg text-xs text-green-600 dark:text-green-400 flex items-center gap-2">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center gap-2">
               <CheckCircle className="w-4 h-4 flex-shrink-0" />
               <span>{enrollmentStatus}</span>
             </div>
           )}
 
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg text-xs text-slate-500 dark:text-slate-400 flex items-start gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+          <div className="p-3 bg-[#EAF0F8]/50 border border-[#D2E1F1] rounded-lg text-xs text-[#64748B] flex items-start gap-2">
+            <ShieldCheck className="w-4 h-4 text-[#142D52] mt-0.5 flex-shrink-0" />
             <span>
-              Secure Biometric Protocol: Raw face photos are transmitted directly to the FastAPI server for verification and vectorization. No local embeddings are retained in browser storage.
+              Samples are transmitted securely to the shared FastAPI endpoint. Vectorization occurs on the server and no raw biometrics are kept in browser storage.
             </span>
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+        {/* Modal Actions */}
+        <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-[#E2E8F0]">
           <button
             type="button"
             onClick={resetSamples}
             disabled={samples.length === 0 || isSubmitting}
-            className="px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 disabled:opacity-40 flex items-center gap-1.5"
+            className="px-3.5 py-2 text-xs font-medium text-[#64748B] hover:text-[#142D52] hover:bg-[#EAF0F8] rounded-lg transition disabled:opacity-40 flex items-center gap-1.5"
           >
-            <RefreshCw className="w-4 h-4" /> Reset
+            <RefreshCw className="w-3.5 h-3.5" /> Retake
           </button>
           {samples.length < 3 ? (
             <button
               type="button"
               onClick={captureSample}
               disabled={!!cameraError}
-              className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+              className="px-4 py-2 bg-[#142D52] hover:bg-[#0E203B] text-white text-xs font-semibold rounded-lg shadow-sm transition disabled:opacity-50"
             >
               Capture Frame ({samples.length}/3)
             </button>
@@ -211,9 +226,9 @@ export const FaceEnrollmentModal: React.FC<FaceEnrollmentProps> = ({
               type="button"
               onClick={submitEnrollment}
               disabled={isSubmitting}
-              className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 bg-[#142D52] hover:bg-[#0E203B] text-white text-xs font-semibold rounded-lg shadow-sm transition disabled:opacity-50 flex items-center gap-2"
             >
-              {isSubmitting ? "Transmitting..." : "Send to FastAPI Backend"}
+              {isSubmitting ? "Transmitting to FastAPI..." : "Complete Enrollment"}
             </button>
           )}
         </div>

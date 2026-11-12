@@ -11,7 +11,7 @@ import {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
     super(message);
@@ -46,13 +46,15 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
         localStorage.removeItem("admin_user");
         window.dispatchEvent(new Event("auth:unauthorized"));
       }
-      throw new ApiError("Session expired or unauthorized.", 401);
+      throw new ApiError("Invalid credentials or session expired.", 401);
     }
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({}));
       const message =
-        errorBody.detail || errorBody.message || `Request failed with status ${response.status}`;
+        errorBody.detail ||
+        errorBody.message ||
+        `Request failed with status ${response.status}`;
       throw new ApiError(message, response.status);
     }
 
@@ -68,11 +70,34 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 export const api = {
   // Auth
-  login: async (email: string, password: string): Promise<AuthResponse> => {
-    return request<AuthResponse>("/auth/login", {
+  login: async (identifier: string, password: string): Promise<AuthResponse> => {
+    // Standard OAuth2 / JSON login endpoint
+    const response = await request<Record<string, unknown>>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ username: email, password }),
+      body: JSON.stringify({ username: identifier, password }),
     });
+
+    // Normalize response from either format: { access_token, user } or { status, user: { token, ... } }
+    if (response.access_token) {
+      return response as unknown as AuthResponse;
+    }
+
+    if (response.user && typeof response.user === "object") {
+      const u = response.user as Record<string, unknown>;
+      const token = (u.token as string) || (response.token as string) || "";
+      return {
+        access_token: token,
+        token_type: "bearer",
+        user: {
+          id: (u.user_id as string) || (u.id as string) || "admin",
+          email: (u.email as string) || (u.username as string) || identifier,
+          name: (u.full_name as string) || (u.username as string) || "Administrator",
+          role: (u.user_role as "admin") || "admin",
+        },
+      };
+    }
+
+    throw new ApiError("Unexpected response structure from login API", 500);
   },
 
   getCurrentAdmin: async (): Promise<AdminUser> => {
@@ -139,7 +164,10 @@ export const api = {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      throw new ApiError(err.detail || err.message || "Failed to enroll face samples", response.status);
+      throw new ApiError(
+        err.detail || err.message || "Failed to enroll face samples on backend.",
+        response.status
+      );
     }
 
     return await response.json();

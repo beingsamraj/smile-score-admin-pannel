@@ -8,7 +8,7 @@ interface AuthContextType {
   user: AdminUser | null;
   token: string | null;
   isLoading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
+  login: (identifier: string, pass: string) => Promise<void>;
   logout: () => void;
   error: string | null;
 }
@@ -22,6 +22,25 @@ const AuthContext = createContext<AuthContextType>({
   error: null,
 });
 
+/**
+ * Checks if a JWT token is structurally valid and unexpired (client-side clock check).
+ */
+export function isTokenValid(token: string | null): boolean {
+  if (!token) return false;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp) {
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp > now;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -33,10 +52,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUser = localStorage.getItem("admin_user");
 
     if (storedToken && storedUser) {
-      try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } catch {
+      if (isTokenValid(storedToken)) {
+        try {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        } catch {
+          localStorage.removeItem("admin_access_token");
+          localStorage.removeItem("admin_user");
+        }
+      } else {
+        // Expired token
         localStorage.removeItem("admin_access_token");
         localStorage.removeItem("admin_user");
       }
@@ -53,10 +78,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
   }, []);
 
-  const login = async (email: string, pass: string) => {
+  const login = async (identifier: string, pass: string) => {
     setError(null);
+
+    // Direct backend authentication via FastAPI
     try {
-      const resp = await api.login(email, pass);
+      const resp = await api.login(identifier, pass);
       localStorage.setItem("admin_access_token", resp.access_token);
       localStorage.setItem("admin_user", JSON.stringify(resp.user));
       setToken(resp.access_token);
