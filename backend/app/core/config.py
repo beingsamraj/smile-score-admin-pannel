@@ -18,10 +18,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
 
     # Initial Admin Seed
-    FIRST_SUPERADMIN_EMAIL: str = "admin@smilescore.internal"
-    FIRST_SUPERADMIN_USERNAME: str = "admin"
-    FIRST_SUPERADMIN_PASSWORD: str = "AdminSecurePassword123!"
-    FIRST_SUPERADMIN_NAME: str = "Smile Score Administrator"
+    FIRST_SUPERADMIN_EMAIL: str = "test@smilescore.internal"
+    FIRST_SUPERADMIN_USERNAME: str = "test"
+    FIRST_SUPERADMIN_PASSWORD: str = "test123"
+    FIRST_SUPERADMIN_NAME: str = "Test Superadmin"
 
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
