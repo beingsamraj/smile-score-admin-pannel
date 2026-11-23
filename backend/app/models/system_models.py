@@ -202,14 +202,16 @@ class EmployeeTransferHistory(Base):
 
 
 class FaceTemplate(Base):
-    """Face biometric enrollment records."""
+    """Face biometric enrollment records (5-angle multi-sample storage)."""
     __tablename__ = "face_templates"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     employee_id = Column(String(36), ForeignKey("employees.id", ondelete="CASCADE"), nullable=False, index=True)
     sample_index = Column(Integer, nullable=False, default=1)
+    angle = Column(String(32), default="center", nullable=False)  # center, left, right, top, bottom
     file_path = Column(String(512), nullable=False)
-    embedding = Column(Text, nullable=True)
+    embedding = Column(Text, nullable=True)  # JSON or base64 representation
+    quality_score = Column(Float, default=1.0, nullable=False)
     created_at = Column(DateTime, default=get_utc_now, nullable=False)
 
 

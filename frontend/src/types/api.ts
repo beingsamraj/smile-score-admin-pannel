@@ -269,3 +269,61 @@ export interface ApiResponseSuccess {
   success: boolean;
   message: string;
 }
+
+// -------------------------------------------------------------
+// Face Management & Biometrics Types
+// -------------------------------------------------------------
+export interface FaceSampleInput {
+  sample_index: number;
+  angle: "center" | "left" | "right" | "top" | "bottom";
+  image_base64: string;
+}
+
+export interface FaceSummary {
+  total_employees: number;
+  enrolled_employees: number;
+  pending_employees: number;
+  total_face_templates: number;
+}
+
+export interface FaceEmployeeItem {
+  id: string;
+  employee_id: string;
+  full_name: string;
+  factory_name?: string | null;
+  department_name?: string | null;
+  assigned_hr_name?: string | null;
+  is_active: boolean;
+  has_face_enrolled: boolean;
+  samples_count: number;
+  primary_thumbnail_url?: string | null;
+  enrolled_at?: string | null;
+}
+
+export interface FaceTemplate {
+  id: string;
+  employee_id: string;
+  sample_index: number;
+  angle: string;
+  thumbnail_url: string;
+  quality_score: number;
+  created_at: string;
+}
+
+export interface FaceVerifyResult {
+  is_match: boolean;
+  confidence_score: number;
+  confidence_percentage: number;
+  matched_angle?: string | null;
+  message: string;
+}
+
+export interface FaceIdentifyResult {
+  is_identified: boolean;
+  matched_employee?: FaceEmployeeItem | null;
+  confidence_score: number;
+  confidence_percentage: number;
+  matched_angle?: string | null;
+  message: string;
+}
+

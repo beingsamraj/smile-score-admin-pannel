@@ -10,6 +10,7 @@ import {
   Network,
   UserCog,
   Users,
+  Camera,
   LogOut,
   Shield,
   Server,
@@ -61,6 +62,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ backendStatus = "onl
       href: "/employees",
       icon: Users,
       badge: null,
+    },
+    {
+      name: "Face Biometrics",
+      href: "/faces",
+      icon: Camera,
+      badge: "New",
     },
   ];
 

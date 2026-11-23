@@ -40,10 +40,16 @@ def init_db() -> None:
                 ("is_deleted", "BOOLEAN DEFAULT 0"),
                 ("deleted_at", "DATETIME"),
             ]
-            for col_name, col_type in migrations:
-                if col_name not in cols:
-                    db.execute(text(f"ALTER TABLE employees ADD COLUMN {col_name} {col_type}"))
-                    logger.info(f"Migrated employees table: added {col_name} column.")
+            # Migrate face_templates columns if missing
+            face_cols = [row[1] for row in db.execute(text("PRAGMA table_info(face_templates)")).fetchall()]
+            face_migrations = [
+                ("angle", "VARCHAR(32) DEFAULT 'center'"),
+                ("quality_score", "FLOAT DEFAULT 1.0"),
+            ]
+            for col_name, col_type in face_migrations:
+                if col_name not in face_cols:
+                    db.execute(text(f"ALTER TABLE face_templates ADD COLUMN {col_name} {col_type}"))
+                    logger.info(f"Migrated face_templates table: added {col_name} column.")
             db.commit()
         except Exception as mig_err:
             logger.warning(f"Column migration check note: {mig_err}")

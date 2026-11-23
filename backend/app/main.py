@@ -13,6 +13,7 @@ from app.routers import (
     departments,
     hr,
     employees,
+    faces,
     recognition,
     dashboard,
     reports,
@@ -91,6 +92,7 @@ app.include_router(factories.router, prefix=settings.API_V1_STR)
 app.include_router(departments.router, prefix=settings.API_V1_STR)
 app.include_router(hr.router, prefix=settings.API_V1_STR)
 app.include_router(employees.router, prefix=settings.API_V1_STR)
+app.include_router(faces.router, prefix=settings.API_V1_STR)
 app.include_router(recognition.router, prefix=settings.API_V1_STR)
 app.include_router(dashboard.router, prefix=settings.API_V1_STR)
 app.include_router(reports.router, prefix=settings.API_V1_STR)

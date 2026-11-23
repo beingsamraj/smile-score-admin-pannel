@@ -330,3 +330,78 @@ class RecognitionLogResponse(BaseModel):
 class MessageResponse(BaseModel):
     success: bool
     message: str
+
+
+# -------------------------------------------------------------
+# Dedicated Face Management & Biometrics Schemas
+# -------------------------------------------------------------
+class FaceSampleInput(BaseModel):
+    sample_index: int  # 1 to 5
+    angle: str  # "center", "left", "right", "top", "bottom"
+    image_base64: str  # Base64 image data
+
+
+class FaceEnrollmentBatchRequest(BaseModel):
+    samples: List[FaceSampleInput]  # Expected 5 samples
+
+
+class FaceTemplateResponse(BaseModel):
+    id: str
+    employee_id: str
+    sample_index: int
+    angle: str
+    thumbnail_url: str
+    quality_score: float
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class FaceSummaryResponse(BaseModel):
+    total_employees: int
+    enrolled_employees: int
+    pending_employees: int
+    total_face_templates: int
+
+
+class FaceEmployeeItemResponse(BaseModel):
+    id: str
+    employee_id: str
+    full_name: str
+    factory_name: Optional[str] = None
+    department_name: Optional[str] = None
+    assigned_hr_name: Optional[str] = None
+    is_active: bool
+    has_face_enrolled: bool
+    samples_count: int
+    primary_thumbnail_url: Optional[str] = None
+    enrolled_at: Optional[datetime] = None
+
+
+class FaceVerifyRequest(BaseModel):
+    employee_id: str
+    image_base64: str
+
+
+class FaceVerifyResponse(BaseModel):
+    is_match: bool
+    confidence_score: float  # 0.0 to 1.0
+    confidence_percentage: float  # 0% to 100%
+    matched_angle: Optional[str] = None
+    message: str
+
+
+class FaceIdentifyRequest(BaseModel):
+    image_base64: str
+    threshold: Optional[float] = 0.65
+
+
+class FaceIdentifyResponse(BaseModel):
+    is_identified: bool
+    matched_employee: Optional[FaceEmployeeItemResponse] = None
+    confidence_score: float
+    confidence_percentage: float
+    matched_angle: Optional[str] = None
+    message: str
+

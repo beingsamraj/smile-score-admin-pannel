@@ -395,4 +395,66 @@ export const api = {
   getRecognitionLogs: async (limit = 50): Promise<RecognitionLog[]> => {
     return request<RecognitionLog[]>(`/recognition/logs?limit=${limit}`);
   },
+
+  // -------------------------------------------------------------
+  // Dedicated Face Management APIs
+  // -------------------------------------------------------------
+  getFaceSummary: async (): Promise<import("@/types/api").FaceSummary> => {
+    return request<import("@/types/api").FaceSummary>("/faces/summary");
+  },
+
+  getFaceRoster: async (options?: {
+    factory_id?: string;
+    department_id?: string;
+    status?: "all" | "enrolled" | "pending";
+    search?: string;
+  }): Promise<import("@/types/api").FaceEmployeeItem[]> => {
+    const params = new URLSearchParams();
+    if (options?.factory_id) params.append("factory_id", options.factory_id);
+    if (options?.department_id) params.append("department_id", options.department_id);
+    if (options?.status && options.status !== "all") params.append("status", options.status);
+    if (options?.search) params.append("search", options.search);
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    return request<import("@/types/api").FaceEmployeeItem[]>(`/faces${qs}`);
+  },
+
+  getFaceTemplates: async (employeeId: string): Promise<import("@/types/api").FaceTemplate[]> => {
+    return request<import("@/types/api").FaceTemplate[]>(`/faces/${employeeId}/templates`);
+  },
+
+  enrollFaceBatch: async (
+    employeeId: string,
+    samples: import("@/types/api").FaceSampleInput[]
+  ): Promise<ApiResponseSuccess> => {
+    return request<ApiResponseSuccess>(`/faces/enroll/${employeeId}`, {
+      method: "POST",
+      body: JSON.stringify({ samples }),
+    });
+  },
+
+  deleteFaceBiometrics: async (employeeId: string): Promise<ApiResponseSuccess> => {
+    return request<ApiResponseSuccess>(`/faces/${employeeId}`, {
+      method: "DELETE",
+    });
+  },
+
+  verifyFace: async (
+    employeeId: string,
+    imageBase64: string
+  ): Promise<import("@/types/api").FaceVerifyResult> => {
+    return request<import("@/types/api").FaceVerifyResult>("/faces/verify", {
+      method: "POST",
+      body: JSON.stringify({ employee_id: employeeId, image_base64: imageBase64 }),
+    });
+  },
+
+  identifyFace: async (
+    imageBase64: string,
+    threshold: number = 0.65
+  ): Promise<import("@/types/api").FaceIdentifyResult> => {
+    return request<import("@/types/api").FaceIdentifyResult>("/faces/identify", {
+      method: "POST",
+      body: JSON.stringify({ image_base64: imageBase64, threshold }),
+    });
+  },
 };
